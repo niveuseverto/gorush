@@ -36,6 +36,7 @@ func InitAPNSClient(key string) (*apns.Client, error) {
 	ext := filepath.Ext(path)
 	switch ext {
 	case ".p12":
+		LogAccess.Debugf("Loading key %s with password %s", path, password)
 		CertificatePemIos, err = certificate.FromP12File(path, password)
 	case ".pem":
 		CertificatePemIos, err = certificate.FromPemFile(path, password)
@@ -200,8 +201,10 @@ Retry:
 		notification.DeviceToken = token
 
 		if req.ApnsClient != "" {
+			LogAccess.Debugf("Using client for %s", req.ApnsClient)
 			client, err = InitAPNSClient(req.ApnsClient)
 		} else {
+			LogAccess.Debug("Using default APNS client")
 			client, err = InitAPNSClient("")
 		}
 
