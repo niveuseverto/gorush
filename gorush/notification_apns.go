@@ -8,7 +8,16 @@ import (
 	apns "github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/certificate"
 	"github.com/sideshow/apns2/payload"
+
+	"crypto/md5"
+	"encoding/hex"
 )
+
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
 
 // InitAPNSClient use for initialize APNs Client.
 func InitAPNSClient(key string) (*apns.Client, error) {
@@ -23,7 +32,7 @@ func InitAPNSClient(key string) (*apns.Client, error) {
 			return nil, errors.New("APNS key_password not exists")
 		}
 		path = PushConf.Ios.KeyMap[key]
-		password = PushConf.Ios.KeyMap[key]
+		password = PushConf.Ios.KeyPass[key]
 	} else {
 		path = PushConf.Ios.KeyPath
 		password = PushConf.Ios.Password
@@ -36,7 +45,7 @@ func InitAPNSClient(key string) (*apns.Client, error) {
 	ext := filepath.Ext(path)
 	switch ext {
 	case ".p12":
-		LogAccess.Debugf("Loading key %s with password %s", path, password)
+		LogAccess.Debugf("Loading key %s with password %s", path, GetMD5Hash(password))
 		CertificatePemIos, err = certificate.FromP12File(path, password)
 	case ".pem":
 		CertificatePemIos, err = certificate.FromPemFile(path, password)
